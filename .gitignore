@@ -1,8 +1,3 @@
-.idea/
-.env/
-*.egg-info
-reports/
-build/
-nohup.out
-.DS_Store
-xcuserdata/
+*.gemspec
+pkg
+Gemfile.lock
