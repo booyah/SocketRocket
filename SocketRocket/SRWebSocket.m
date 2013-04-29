@@ -26,7 +26,13 @@
 #endif
 
 #if TARGET_OS_IPHONE
+#ifndef APPORTABLE
 #import <Endian.h>
+#else
+#import <libkern/OSByteOrder.h>
+#define EndianU16_BtoN(x) OSSwapHostToBigInt16(x)
+#define EndianU64_BtoN(x) OSSwapHostToBigInt64(x)
+#endif
 #else
 #import <CoreServices/CoreServices.h>
 #endif
@@ -655,9 +661,11 @@ static __strong NSData *CRLFCRLF;
             NSRange remainingRange = {0};
             
             NSUInteger usedLength = 0;
-            
+#ifndef APPORTABLE
             BOOL success = [reason getBytes:(char *)mutablePayload.mutableBytes + sizeof(uint16_t) maxLength:payload.length - sizeof(uint16_t) usedLength:&usedLength encoding:NSUTF8StringEncoding options:NSStringEncodingConversionExternalRepresentation range:NSMakeRange(0, reason.length) remainingRange:&remainingRange];
-            
+#else
+            BOOL success = YES;
+#endif
             assert(success);
             assert(remainingRange.length == 0);
 
@@ -1629,7 +1637,7 @@ static inline void SRFastLog(NSString *format, ...)  {
 }
 
 
-#ifdef HAS_ICU
+#if defined(HAS_ICU) && !APPORTABLE
 
 static inline int32_t validate_dispatch_data_partial_string(NSData *data) {
     const void * contents = [data bytes];
