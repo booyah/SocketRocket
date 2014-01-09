@@ -661,11 +661,7 @@ static __strong NSData *CRLFCRLF;
             NSRange remainingRange = {0};
             
             NSUInteger usedLength = 0;
-#ifndef APPORTABLE
             BOOL success = [reason getBytes:(char *)mutablePayload.mutableBytes + sizeof(uint16_t) maxLength:payload.length - sizeof(uint16_t) usedLength:&usedLength encoding:NSUTF8StringEncoding options:NSStringEncodingConversionExternalRepresentation range:NSMakeRange(0, reason.length) remainingRange:&remainingRange];
-#else
-            BOOL success = YES;
-#endif
             assert(success);
             assert(remainingRange.length == 0);
 
@@ -1382,7 +1378,11 @@ static const size_t SRFrameHeaderOverhead = 32;
         
         NSArray *sslCerts = [_urlRequest SR_SSLPinnedCertificates];
         if (sslCerts) {
+#ifdef APPORTABLE
+            SecTrustRef secTrust = nil;
+#else
             SecTrustRef secTrust = (__bridge SecTrustRef)[aStream propertyForKey:(__bridge id)kCFStreamPropertySSLPeerTrust];
+#endif
             if (secTrust) {
                 NSInteger numCerts = SecTrustGetCertificateCount(secTrust);
                 for (NSInteger i = 0; i < numCerts && !_pinnedCertFound; i++) {
